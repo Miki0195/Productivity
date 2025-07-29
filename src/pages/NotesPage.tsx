@@ -34,7 +34,6 @@ import {
   Tag,
   Hash,
   Filter,
-  X,
   Clock,
   FolderOpen,
   Folder as FolderIcon,
@@ -301,8 +300,9 @@ export default function NotesPage() {
               title: editingGoalContent.title.trim(), 
               description: editingGoalContent.description.trim() || null,
               priority: editingGoalContent.priority,
-              due_date: editingGoalContent.due_date || null
-            }
+              due_date: editingGoalContent.due_date || null,
+              updated_at: new Date().toISOString()
+            } as Goal
           : goal
       ))
       
@@ -312,8 +312,9 @@ export default function NotesPage() {
         title: editingGoalContent.title.trim(),
         description: editingGoalContent.description.trim() || null,
         priority: editingGoalContent.priority,
-        due_date: editingGoalContent.due_date || null
-      } : null)
+        due_date: editingGoalContent.due_date || null,
+        updated_at: new Date().toISOString()
+      } as Goal : null)
       
       setHasUnsavedGoalChanges(false)
     } catch (error) {
@@ -380,35 +381,6 @@ export default function NotesPage() {
       }
     } catch (error) {
       console.error('Error creating note:', error)
-    }
-  }
-
-  const updateNote = async () => {
-    if (!editingNote || !noteForm.title.trim()) return
-    
-    try {
-      const tags = noteForm.tags
-        .split(',')
-        .map(tag => tag.trim())
-        .filter(tag => tag.length > 0)
-      
-      const { error } = await supabase
-        .from('notes')
-        .update({
-          title: noteForm.title.trim(),
-          content: noteForm.content.trim(),
-          tags: tags,
-          updated_at: new Date().toISOString(),
-        })
-        .eq('id', editingNote.id)
-      
-      if (error) throw error
-      
-      setEditingNote(null)
-      setNoteForm({ title: '', content: '', tags: '' })
-      fetchData()
-    } catch (error) {
-      console.error('Error updating note:', error)
     }
   }
 
