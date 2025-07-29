@@ -1,7 +1,7 @@
 import React from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
-import { Clock, BarChart3, LogOut, User } from 'lucide-react'
+import { Clock, BarChart3, FileText, LogOut, User } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
 
 export default function Navigation() {
@@ -19,6 +19,7 @@ export default function Navigation() {
   const navItems = [
     { path: '/', label: 'Timer', icon: Clock },
     { path: '/analytics', label: 'Analytics', icon: BarChart3 },
+    { path: '/logs', label: 'Sessions', icon: FileText },
   ]
 
   return (

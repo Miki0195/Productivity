@@ -2,8 +2,9 @@ import React, { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Play, Square, Clock } from 'lucide-react'
-import { supabase } from '@/services/supabase'
+import { supabase, WorkSessionData } from '@/services/supabase'
 import { useAuth } from '@/contexts/AuthContext'
+import WorkSessionModal from '@/components/WorkSessionModal'
 
 interface ActiveSession {
   startTime: string
@@ -15,6 +16,8 @@ export default function TimeTracker({ onLogAdded }: { onLogAdded: () => void }) 
   const [startTime, setStartTime] = useState<Date | null>(null)
   const [elapsedTime, setElapsedTime] = useState(0)
   const [loading, setLoading] = useState(false)
+  const [showModal, setShowModal] = useState(false)
+  const [sessionEndTime, setSessionEndTime] = useState<Date | null>(null)
   const { user } = useAuth()
 
   // Load active session from localStorage on mount
@@ -55,6 +58,17 @@ export default function TimeTracker({ onLogAdded }: { onLogAdded: () => void }) 
       .padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`
   }
 
+  const formatDuration = (milliseconds: number): string => {
+    const totalSeconds = Math.floor(milliseconds / 1000)
+    const hours = Math.floor(totalSeconds / 3600)
+    const minutes = Math.floor((totalSeconds % 3600) / 60)
+
+    if (hours > 0) {
+      return `${hours}h ${minutes}m`
+    }
+    return `${minutes}m`
+  }
+
   const startWork = () => {
     const now = new Date()
     setStartTime(now)
@@ -69,29 +83,44 @@ export default function TimeTracker({ onLogAdded }: { onLogAdded: () => void }) 
     localStorage.setItem('activeTimeSession', JSON.stringify(session))
   }
 
-  const stopWork = async () => {
-    if (!startTime || !user) return
+  const stopWork = () => {
+    if (!startTime) return
+
+    const endTime = new Date()
+    setSessionEndTime(endTime)
+    setIsTracking(false)
+    
+    // Clear localStorage
+    localStorage.removeItem('activeTimeSession')
+    
+    // Show modal for session details
+    setShowModal(true)
+  }
+
+  const saveSession = async (sessionData: WorkSessionData) => {
+    if (!startTime || !sessionEndTime || !user) return
 
     setLoading(true)
     try {
-      const endTime = new Date()
-      
-      // Save to Supabase
+      // Save to Supabase with session details
       const { error } = await supabase
         .from('time_logs')
         .insert({
           user_id: user.id,
           start_time: startTime.toISOString(),
-          end_time: endTime.toISOString(),
+          end_time: sessionEndTime.toISOString(),
+          title: sessionData.title || null,
+          project: sessionData.project || null,
+          description: sessionData.description || null,
         })
 
       if (error) throw error
 
-      // Clear state and localStorage
-      setIsTracking(false)
+      // Reset state
       setStartTime(null)
       setElapsedTime(0)
-      localStorage.removeItem('activeTimeSession')
+      setSessionEndTime(null)
+      setShowModal(false)
 
       // Notify parent to refresh logs
       onLogAdded()
@@ -103,50 +132,66 @@ export default function TimeTracker({ onLogAdded }: { onLogAdded: () => void }) 
     }
   }
 
-  return (
-    <Card className="w-full max-w-md mx-auto">
-      <CardHeader className="text-center">
-        <CardTitle className="flex items-center justify-center gap-2">
-          <Clock className="w-5 h-5" />
-          Time Tracker
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-6">
-        {isTracking && (
-          <div className="text-center">
-            <div className="text-3xl font-mono font-bold text-blue-600">
-              {formatTime(elapsedTime)}
-            </div>
-            <div className="text-sm text-gray-500 mt-1">
-              Started at {startTime?.toLocaleTimeString()}
-            </div>
-          </div>
-        )}
+  const skipDetails = async () => {
+    // Save session without details
+    await saveSession({ title: '', project: '', description: '' })
+  }
 
-        <div className="flex justify-center">
-          {!isTracking ? (
-            <Button
-              onClick={startWork}
-              size="lg"
-              className="bg-green-600 hover:bg-green-700 text-white px-8 py-3"
-            >
-              <Play className="w-5 h-5 mr-2" />
-              Start Work
-            </Button>
-          ) : (
-            <Button
-              onClick={stopWork}
-              disabled={loading}
-              size="lg"
-              variant="destructive"
-              className="px-8 py-3"
-            >
-              <Square className="w-5 h-5 mr-2" />
-              {loading ? 'Saving...' : 'Stop Work'}
-            </Button>
+  return (
+    <>
+      <Card className="w-full max-w-md mx-auto">
+        <CardHeader className="text-center">
+          <CardTitle className="flex items-center justify-center gap-2">
+            <Clock className="w-5 h-5" />
+            Time Tracker
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          {isTracking && (
+            <div className="text-center">
+              <div className="text-3xl font-mono font-bold text-blue-600">
+                {formatTime(elapsedTime)}
+              </div>
+              <div className="text-sm text-gray-500 mt-1">
+                Started at {startTime?.toLocaleTimeString()}
+              </div>
+            </div>
           )}
-        </div>
-      </CardContent>
-    </Card>
+
+          <div className="flex justify-center">
+            {!isTracking ? (
+              <Button
+                onClick={startWork}
+                size="lg"
+                className="bg-green-600 hover:bg-green-700 text-white px-8 py-3"
+              >
+                <Play className="w-5 h-5 mr-2" />
+                Start Work
+              </Button>
+            ) : (
+              <Button
+                onClick={stopWork}
+                disabled={loading}
+                size="lg"
+                variant="destructive"
+                className="px-8 py-3"
+              >
+                <Square className="w-5 h-5 mr-2" />
+                Stop Work
+              </Button>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Work Session Modal */}
+      <WorkSessionModal
+        isOpen={showModal}
+        onClose={skipDetails}
+        onSave={saveSession}
+        duration={formatDuration(elapsedTime)}
+        loading={loading}
+      />
+    </>
   )
 } 

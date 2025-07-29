@@ -7,6 +7,9 @@ create table public.time_logs (
   user_id uuid references auth.users not null,
   start_time timestamp with time zone not null,
   end_time timestamp with time zone not null,
+  title text,
+  project text,
+  description text,
   created_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
 
@@ -30,4 +33,9 @@ create policy "Users can delete their own time logs" on public.time_logs
   for delete using (auth.uid() = user_id);
 
 -- Optional: Create an index for better performance when querying by user_id and date
-create index idx_time_logs_user_date on public.time_logs(user_id, start_time); 
+create index idx_time_logs_user_date on public.time_logs(user_id, start_time);
+
+-- Migration: Add new columns to existing table (run this if you already have the table)
+-- alter table public.time_logs add column title text;
+-- alter table public.time_logs add column project text;
+-- alter table public.time_logs add column description text; 

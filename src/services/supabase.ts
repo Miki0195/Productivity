@@ -11,6 +11,9 @@ export interface TimeLog {
   user_id: string
   start_time: string
   end_time: string
+  title?: string
+  project?: string
+  description?: string
   created_at?: string
 }
 
@@ -18,4 +21,10 @@ export interface User {
   id: string
   email: string
   created_at: string
+}
+
+export interface WorkSessionData {
+  title: string
+  project: string
+  description: string
 } 
