@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import { useState } from 'react'
 import TimeTracker from '@/components/TimeTracker'
 import TimeLogsTable from '@/components/TimeLogsTable'
 

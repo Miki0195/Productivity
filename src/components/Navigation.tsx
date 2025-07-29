@@ -1,4 +1,3 @@
-import React from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import { Clock, BarChart3, FileText, LogOut, User } from 'lucide-react'

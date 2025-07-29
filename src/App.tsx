@@ -1,4 +1,3 @@
-import React from 'react'
 import { AuthProvider, useAuth } from '@/contexts/AuthContext'
 import Auth from '@/components/Auth'
 import Dashboard from '@/components/Dashboard'

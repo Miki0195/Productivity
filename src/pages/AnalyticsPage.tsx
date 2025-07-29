@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { DateRangePicker } from '@/components/ui/date-picker'
@@ -257,7 +257,7 @@ export default function AnalyticsPage() {
       })
     })
 
-    const data = Object.entries(weeklyData).map(([week, data]) => ({
+    const data = Object.entries(weeklyData).map(([, data]) => ({
       name: `${format(data.actualStart, 'dd.MM')}-${format(data.actualEnd, 'dd.MM')}`,
       hours: data.hours
     }))
