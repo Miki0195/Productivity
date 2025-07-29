@@ -1,7 +1,6 @@
-import React, { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { FolderOpen, ChevronDown, X, Check } from 'lucide-react'
+import { FolderOpen, X } from 'lucide-react'
 
 interface ProjectFilterProps {
   projects: string[]
@@ -14,126 +13,60 @@ export default function ProjectFilter({
   selectedProject,
   onProjectSelect,
 }: ProjectFilterProps) {
-  const [isOpen, setIsOpen] = useState(false)
-
-  const handleProjectSelect = (project: string | null) => {
-    onProjectSelect(project)
-    setIsOpen(false)
-  }
-
-  const clearSelection = (e: React.MouseEvent) => {
-    e.stopPropagation()
-    onProjectSelect(null)
-  }
-
   return (
-    <div className="relative">
-      <div className="space-y-2">
-        <label className="text-sm font-medium text-gray-700 flex items-center gap-2">
-          <FolderOpen className="w-4 h-4" />
-          Project Filter
-        </label>
-        
-        <div className="relative">
-          <Button
-            variant="outline"
-            onClick={() => setIsOpen(!isOpen)}
-            className="w-full justify-between h-10 px-3 text-left"
-          >
-            <div className="flex items-center gap-2 min-w-0 flex-1">
-              {selectedProject ? (
-                <>
-                  <FolderOpen className="w-4 h-4 text-blue-600 flex-shrink-0" />
-                  <span className="truncate">{selectedProject}</span>
-                  <button
-                    onClick={clearSelection}
-                    className="ml-auto flex-shrink-0 p-1 hover:bg-gray-100 rounded"
-                  >
-                    <X className="w-3 h-3" />
-                  </button>
-                </>
-              ) : (
-                <>
-                  <FolderOpen className="w-4 h-4 text-gray-400 flex-shrink-0" />
-                  <span className="text-gray-500">All Projects</span>
-                </>
-              )}
-            </div>
-            <ChevronDown className={`w-4 h-4 text-gray-400 flex-shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
-          </Button>
-
-          {isOpen && (
-            <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-50 max-h-64 overflow-y-auto">
-              <div className="p-1">
-                {/* All Projects Option */}
-                <button
-                  onClick={() => handleProjectSelect(null)}
-                  className={`w-full flex items-center gap-2 px-3 py-2 text-sm text-left rounded-md hover:bg-gray-50 ${
-                    !selectedProject ? 'bg-blue-50 text-blue-700' : 'text-gray-700'
-                  }`}
-                >
-                  <div className="w-4 h-4 flex items-center justify-center">
-                    {!selectedProject && <Check className="w-3 h-3 text-blue-600" />}
-                  </div>
-                  <FolderOpen className="w-4 h-4 text-gray-400" />
-                  <span>All Projects</span>
-                  {!selectedProject && (
-                    <Badge variant="secondary" className="ml-auto text-xs">
-                      {projects.length} project{projects.length !== 1 ? 's' : ''}
-                    </Badge>
-                  )}
-                </button>
-
-                {/* Individual Projects */}
-                {projects.length > 0 && (
-                  <div className="border-t border-gray-100 mt-1 pt-1">
-                    {projects.map((project) => (
-                      <button
-                        key={project}
-                        onClick={() => handleProjectSelect(project)}
-                        className={`w-full flex items-center gap-2 px-3 py-2 text-sm text-left rounded-md hover:bg-gray-50 ${
-                          selectedProject === project ? 'bg-blue-50 text-blue-700' : 'text-gray-700'
-                        }`}
-                      >
-                        <div className="w-4 h-4 flex items-center justify-center">
-                          {selectedProject === project && <Check className="w-3 h-3 text-blue-600" />}
-                        </div>
-                        <FolderOpen className="w-4 h-4 text-blue-600" />
-                        <span className="truncate">{project}</span>
-                      </button>
-                    ))}
-                  </div>
-                )}
-
-                {projects.length === 0 && (
-                  <div className="px-3 py-6 text-center text-gray-500 text-sm">
-                    <FolderOpen className="w-8 h-8 mx-auto mb-2 text-gray-300" />
-                    <p>No projects found</p>
-                    <p className="text-xs mt-1">Start tracking time to see projects here</p>
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Active Filter Indicator */}
+    <div className="space-y-3">
+      <div className="flex items-center gap-2">
+        <FolderOpen className="w-4 h-4 text-gray-500" />
+        <span className="text-sm font-medium text-gray-700">Projects</span>
         {selectedProject && (
-          <div className="flex items-center gap-2">
-            <Badge variant="outline" className="text-xs">
-              <FolderOpen className="w-3 h-3 mr-1" />
-              {selectedProject}
-            </Badge>
-          </div>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => onProjectSelect(null)}
+            className="h-6 w-6 p-0"
+          >
+            <X className="w-3 h-3" />
+          </Button>
         )}
       </div>
-
-      {/* Click outside to close */}
-      {isOpen && (
-        <div
-          className="fixed inset-0 z-40"
-          onClick={() => setIsOpen(false)}
-        />
+      
+      {selectedProject && (
+        <div className="mb-2">
+          <Badge variant="default" className="flex items-center gap-1 w-fit">
+            <FolderOpen className="w-3 h-3" />
+            {selectedProject}
+            <button
+              onClick={() => onProjectSelect(null)}
+              className="ml-1 hover:bg-white/20 rounded-full p-0.5"
+            >
+              <X className="w-3 h-3" />
+            </button>
+          </Badge>
+        </div>
+      )}
+      
+      {projects.length > 0 ? (
+        <div className="space-y-1 max-h-48 overflow-y-auto">
+          {projects.map((project) => (
+            <Button
+              key={project}
+              variant={selectedProject === project ? 'default' : 'ghost'}
+              size="sm"
+              onClick={() => onProjectSelect(project)}
+              className="w-full justify-start text-left h-auto py-2 px-3"
+            >
+              <FolderOpen className="w-4 h-4 mr-2 flex-shrink-0" />
+              <span className="truncate">{project}</span>
+            </Button>
+          ))}
+        </div>
+      ) : (
+        <div className="text-center py-4 text-gray-500 text-sm">
+          {selectedProject 
+            ? 'No other projects found'
+            : 'No projects found for this period'
+          }
+        </div>
       )}
     </div>
   )
